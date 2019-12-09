@@ -7,7 +7,7 @@ public:
 	FixedPool()
 	{
 		//申请initNum个大小的内存
-		_start = _end = (char*)malloc(initNum*sizeof(T));
+		_start = (char*)malloc(initNum*sizeof(T));
 	}
 	T* NEW()//申请一个对象
 	{
