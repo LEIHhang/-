@@ -1,12 +1,10 @@
 #pragma once
 #include"ThreadCache.h"
-void* ThreadCache::FechFromCentralCache(size_t index, size_t num)
-{
-	//
-}
+
 void* ThreadCache::Allocte(size_t size)
 {
-	size_t index;//Index(size);获取结点从链表下标
+	//Index(size);获取结点从链表下标
+	size_t index = SizeClass::ListIndex(size);
 	FreeList& freeList = _freeLists[index];
 	if (!freeList.Empty())
 	{
@@ -23,7 +21,7 @@ void* ThreadCache::Allocte(size_t size)
 }
 void ThreadCache::Deallocte(void* ptr, size_t size)
 {
-	size_t index;//根据size获取index；
+	size_t index = SizeClass::ListIndex(size);//根据size获取index；
 	FreeList& freeList = _freeLists[index];
 	freeList.Push(ptr);
 
@@ -32,4 +30,26 @@ void ThreadCache::Deallocte(void* ptr, size_t size)
 	//用来将资源返还给centralcache。
 	//	ReleaseToCentralCache();
 	//}
+}
+
+void* ThreadCache::FechFromCentralCache(size_t index, size_t num)
+{
+	//模拟取内存对象的代码，测试Thread cache逻辑
+	size_t size = (index + 1) * 8;
+	char* start = (char*)malloc(num * size);
+	char* cur = start;
+	for (size_t i = 0; i < num - 1; ++i)
+	{
+		char* next = cur + size;
+		NextObj(cur) = next;
+
+		cur = next;
+	}
+	NextObj(cur) = nullptr;
+
+	void* head = NextObj(start);
+	void* tail = cur;
+
+	_freeLists[index].PushRange(head, tail);
+	return start;
 }

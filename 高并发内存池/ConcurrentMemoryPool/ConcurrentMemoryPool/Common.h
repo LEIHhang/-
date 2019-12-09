@@ -9,7 +9,7 @@ const size_t NFREE_LIST = MAX_SIZE / 8;
 
 inline void*& NextObj(void* obj)
 {
-	//返回obj指向空间前四/八个字节的指针
+	//返回obj指向空间前四/八个字节的指针,也就是下一个节点的指针
 	return *(void**)obj;
 }
 class FreeList
@@ -20,6 +20,12 @@ public:
 		//头插
 		NextObj(obj) = _freelist;
 		_freelist = obj;
+	}
+
+	void PushRange(void* head, void* tail)
+	{
+		NextObj(tail) = _freelist;
+		_freelist = head;
 	}
 
 	void* Pop()
@@ -35,4 +41,19 @@ public:
 	}
 private:
 	void* _freelist= nullptr;
+};
+
+class SizeClass
+{
+public:
+	//根据对象大小计算下标
+	static size_t ListIndex(size_t size)
+	{
+		if (size % 8 == 0)
+		{
+			return size / 8 - 1;
+		}
+		else
+			return size / 8;
+	}
 };
