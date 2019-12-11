@@ -76,10 +76,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CentralCache.cpp" />
     <ClCompile Include="Test.cpp" />
     <ClCompile Include="ThreadCache.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CentralCache.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="ThreadCache.h" />
   </ItemGroup>
