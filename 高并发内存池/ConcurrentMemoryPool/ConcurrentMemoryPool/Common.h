@@ -3,7 +3,7 @@
 #include<iostream>
 #include<assert.h>
 using namespace std;
-
+//65537
 const size_t MAX_SIZE = 64 * 1024; //64k以下的从内存池申请，以上的从系统申请
 const size_t NFREE_LIST = MAX_SIZE / 8; //8k，表明链表的最大长度
 //这个类是一个存放固定大小对象内存空间的链表
@@ -25,7 +25,10 @@ public:
 
 	void PushRange(void* head, void* tail)
 	{
+		//头插
+		//_freelist里的地址赋值给tail的前四个字节上
 		NextObj(tail) = _freelist;
+		//head是一个指向头结点的指针，赋值给另一个指针，那么这个指针也指向头结点
 		_freelist = head;
 	}
 
@@ -47,15 +50,35 @@ private:
 class SizeClass
 {
 public:
+	// 控制在12%左右的内碎片浪费 
+	// [1,128]                  8byte对齐  freelist[0,16) 
+	// [129,1024]               16byte对齐     freelist[16,72) 
+	// [1025,8*1024]            128byte对齐    freelist[72,128) 
+	// [8*1024+1,64*1024]       512byte对齐  freelist[128,240)
+
 	//根据对象大小计算指针数组下标
-	static size_t ListIndex(size_t size)
+	static size_t _ListIndex(size_t size, int alig_shift)
 	{
-		if (size % 8 == 0)
+		//2的align_shift次幂是alignment
+		return ((size + ((1 << alig_shift) - 1)) >> alig_shift) -1;
+	}
+
+	static inline size_t ListIndex(size_t size)
+	{
+		assert(size <= MAX_SIZE);
+		static int group_array[3] = { 16, 72, 128 };
+		if (size <= 128)
+			return _ListIndex(size, 3);
+		else if (size <= 1024)
 		{
-			return size / 8 - 1;
+			return _ListIndex(size - 128, 4) + group_array[0];
 		}
-		else
-			return size / 8;
+		else if (size <= 8192)
+			return _ListIndex(size - 1024, 7) + group_array[1];
+		else if (size <= 65536)
+		return _ListIndex(size - 8192, 10) + group_array[2];
+
+		return -1;
 	}
 
 	static size_t _RoundUp(size_t size, int alignment)

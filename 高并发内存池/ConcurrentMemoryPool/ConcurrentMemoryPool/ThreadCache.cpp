@@ -1,6 +1,6 @@
 #pragma once
 #include"ThreadCache.h"
-
+#include"CentralCache.h"
 void* ThreadCache::Allocte(size_t size)
 {
 	//Index(size);获取结点从链表下标
@@ -9,12 +9,13 @@ void* ThreadCache::Allocte(size_t size)
 	if (!freeList.Empty())
 	{
 		//表示当前结点的链表上有空间可以使用
+		//返回这个删除空间的指针
 		return freeList.Pop();
 	}
 	else
 	{
 		//链表上没有，就只能从centre cache中申请
-		return FechFromCentralCache(size);
+		return FechFromCentralCache(SizeClass::RoundUp(size));
 	}
 }
 void ThreadCache::Deallocte(void* ptr, size_t size)
@@ -55,7 +56,22 @@ void ThreadCache::Deallocte(void* ptr, size_t size)
 //	return start;
 //}
 
-void* ThreadCache::FechFromCentralCache(size_t index)
+void* ThreadCache::FechFromCentralCache(size_t size)
 {
-	size_t num = SizeClass::NumMoveSize()
+	size_t num = SizeClass::NumMoveSize(size);
+	void* start = nullptr;
+	void* end = nullptr;
+	//actual 实际获取到的对象
+	int actualNum = centralCacheInst.FetchRangeObj(start, end, num, size);
+	if (actualNum == 1)
+	{
+		return start;
+	}
+	else
+	{
+		size_t index = SizeClass::ListIndex(size);
+		FreeList& freelist = _freeLists[index];
+		freelist.PushRange(NextObj(start), end);
+		return start;
+	}
 }
