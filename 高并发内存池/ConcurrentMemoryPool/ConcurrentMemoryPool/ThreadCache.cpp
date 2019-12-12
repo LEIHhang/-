@@ -14,9 +14,7 @@ void* ThreadCache::Allocte(size_t size)
 	else
 	{
 		//链表上没有，就只能从centre cache中申请
-		//将num-1个挂起来，一个返回
-		size_t num = 20;//对象小需要设置多一些，对象大需要设置小一些
-		return FechFromCentralCache(index, num);
+		return FechFromCentralCache(size);
 	}
 }
 void ThreadCache::Deallocte(void* ptr, size_t size)
@@ -32,24 +30,32 @@ void ThreadCache::Deallocte(void* ptr, size_t size)
 	//}
 }
 
-void* ThreadCache::FechFromCentralCache(size_t index, size_t num)
+
+//独立测试thread cache
+//void* ThreadCache::FechFromCentralCache(size_t size)
+//{
+//	//模拟取内存对象的代码，测试Thread cache逻辑
+//	size_t num = 20;
+//	size_t index = SizeClass::ListIndex(size);
+//	char* start = (char*)malloc(num * size);
+//	char* cur = start;
+//	for (size_t i = 0; i < num - 1; ++i)
+//	{
+//		char* next = cur + size;
+//		NextObj(cur) = next;
+//
+//		cur = next;
+//	}
+//	NextObj(cur) = nullptr;
+//
+//	void* head = NextObj(start);
+//	void* tail = cur;
+//
+//	_freeLists[index].PushRange(head, tail);
+//	return start;
+//}
+
+void* ThreadCache::FechFromCentralCache(size_t index)
 {
-	//模拟取内存对象的代码，测试Thread cache逻辑
-	size_t size = (index + 1) * 8;
-	char* start = (char*)malloc(num * size);
-	char* cur = start;
-	for (size_t i = 0; i < num - 1; ++i)
-	{
-		char* next = cur + size;
-		NextObj(cur) = next;
-
-		cur = next;
-	}
-	NextObj(cur) = nullptr;
-
-	void* head = NextObj(start);
-	void* tail = cur;
-
-	_freeLists[index].PushRange(head, tail);
-	return start;
+	size_t num = SizeClass::NumMoveSize()
 }

@@ -4,8 +4,8 @@
 #include<assert.h>
 using namespace std;
 
-const size_t MAX_SIZE = 64 * 1024; //64k
-const size_t NFREE_LIST = MAX_SIZE / 8; //8k
+const size_t MAX_SIZE = 64 * 1024; //64k以下的从内存池申请，以上的从系统申请
+const size_t NFREE_LIST = MAX_SIZE / 8; //8k，表明链表的最大长度
 //这个类是一个存放固定大小对象内存空间的链表
 
 inline void*& NextObj(void* obj)
@@ -56,6 +56,42 @@ public:
 		}
 		else
 			return size / 8;
+	}
+
+	static size_t _RoundUp(size_t size, int alignment)
+	{
+		// (1-7) + 7 = (8-14) -> 8 4 2 1  8-14转换成二进制都是第四位为1，前三位自由组合，让他们对齐到8 所以&取反的7
+		//（17-23）+7 =（24-30）->16 8 4 2 1 
+		return (size + alignment - 1)&(~(alignment - 1));
+	}
+	//向上对齐 alignment 对齐数
+	static inline size_t RoundUp(size_t size)
+	{
+		assert(size <= MAX_SIZE);
+		if (size <= 128)
+			return _RoundUp(size, 8);
+		else if (size <= 1024)
+			return _RoundUp(size, 16);
+		else if (size <= 8192)
+			return _RoundUp(size, 128);
+		else if (size <= 65536)
+			return _RoundUp(size, 1024);
+
+		return -1;
+	}
+	//针对每一个size挪动Num个对象过去
+	static size_t NumMoveSize(size_t size)
+	{
+		if (size == 0)
+			return 0;
+		int num = MAX_SIZE / size;
+
+		if (num < 2)
+			num = 2;
+
+		if (num > 512)
+			num = 512;
+		return num;
 	}
 };
 
