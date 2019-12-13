@@ -1,6 +1,7 @@
 #pragma once
 #include"ThreadCache.h"
 #include<vector>
+#include"Common.h"
 void UnitThreadCache1()
 {
 	ThreadCache tc;
@@ -33,8 +34,15 @@ void UnitThreadCache2()
 
 
 }
+
+void UnitPageCache1()
+{
+	void* ptr = SystemAllocPage(MAX_PAGES - 1);
+	PAGE_ID id = (PAGE_ID)ptr >> PAGE_SHIFT;
+	cout << id << endl;
+}
 int main()
 {
-	UnitThreadCache2();
+	UnitPageCache1();
 	return 0;
 }

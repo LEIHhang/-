@@ -2,17 +2,20 @@
 #pragma once
 #include<iostream>
 #include<assert.h>
+#include<Windows.h>
 using namespace std;
 //65537
-const size_t MAX_SIZE = 64 * 1024; //64k以下的从内存池申请，以上的从系统申请
+const size_t MAX_SIZE = 64 * 1024; //64k以下的从threadcache申请0-16页
 const size_t NFREE_LIST = MAX_SIZE / 8; //8k，表明链表的最大长度
-//这个类是一个存放固定大小对象内存空间的链表
+const size_t MAX_PAGES = 129;//申请的最大页数
+const size_t PAGE_SHIFT = 12; //4k为页的位移
 
 inline void*& NextObj(void* obj)
 {
 	//返回obj指向空间前四/八个字节的指针,也就是下一个节点的指针
 	return *(void**)obj;
 }
+//这个类是一个存放固定大小对象内存空间的链表
 class FreeList
 {
 public:
@@ -26,10 +29,27 @@ public:
 	void PushRange(void* head, void* tail)
 	{
 		//头插
-		//_freelist里的地址赋值给tail的前四个字节上
+		//_freelist指向的地址赋值给tail指向结点的前四个字节上，即让tail指向头一个结点
 		NextObj(tail) = _freelist;
 		//head是一个指向头结点的指针，赋值给另一个指针，那么这个指针也指向头结点
 		_freelist = head;
+	}
+	size_t PopRange(void* start, void* end, size_t num)
+	{
+		size_t actualNum = 0;
+		void* cur = _freelist;
+		void*prev = nullptr;
+		for (; actualNum < num && cur!=nullptr; ++actualNum)
+		{
+			prev = cur;
+			cur = NextObj(cur);
+		}
+
+		start = _freelist;
+		end = prev;
+		_freelist = cur;
+
+		return actualNum;
 	}
 
 	void* Pop()
@@ -116,6 +136,16 @@ public:
 			num = 512;
 		return num;
 	}
+
+	static size_t NumMovePage(size_t size)
+	{
+		size_t num = NumMoveSize(size);
+		size_t npage = num*size;
+		npage >>= 12;
+		if (npage == 0)
+			npage = 1;
+		return npage;
+	}
 };
 
 //span 跨度：管理页为单位的内存对象，本质是方便做合并，解决内存碎片。
@@ -129,7 +159,7 @@ struct Span
 {
 	PAGE_ID _pageid;//页号
 	int _pagesize;//页的数量
-	void* _freelist;//对象自由链表
+	FreeList _freelist;//对象自由链表
 	int _usecount;//内存块对象使用计数
 
 	size_t objsize;//对象大小
@@ -138,7 +168,7 @@ struct Span
 	Span* _prev;
 };
 
-//SpanList是一个将Span链起来的链表
+//SpanList是一个将Span链起来的带头节点的循环链表
 class SpanList
 {
 public:
@@ -147,6 +177,20 @@ public:
 		_head = new Span;
 		_head->_next = _head;
 		_head->_prev = _head;
+	}
+
+	bool Empty()
+	{
+		return(_head == _head->_next);
+	}
+	Span* Begin()
+	{
+		return _head->_next;
+	}
+
+	Span* End()
+	{
+		return _head;
 	}
 
 	void PushFront(Span* newpos)
@@ -190,3 +234,18 @@ public:
 private:
 	Span* _head;
 };
+
+//向系统申请numpage页内存挂到自由链表
+inline static void* SystemAllocPage(size_t num_page)
+{
+#ifdef _WIN32
+	void* ptr = VirtualAlloc(0, num_page*(1 << PAGE_SHIFT),
+		MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+#else
+	//brk mmap等
+#endif
+	if (ptr == nullptr)
+		throw std::bad_alloc();
+
+	return ptr;
+}

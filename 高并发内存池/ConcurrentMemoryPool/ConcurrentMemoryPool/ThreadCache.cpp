@@ -72,6 +72,7 @@ void* ThreadCache::FechFromCentralCache(size_t size)
 		size_t index = SizeClass::ListIndex(size);
 		FreeList& freelist = _freeLists[index];
 		freelist.PushRange(NextObj(start), end);
+
 		return start;
 	}
 }
