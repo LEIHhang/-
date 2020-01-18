@@ -3,18 +3,20 @@
 #include"CentralCache.h"
 void* ThreadCache::Allocte(size_t size)
 {
-	//Index(size);获取结点从链表下标
+	//Index(size);对齐对象，获取下标
 	size_t index = SizeClass::ListIndex(size);
+	//获取该大小空闲空间链表对象
 	FreeList& freeList = _freeLists[index];
 	if (!freeList.Empty())
 	{
 		//表示当前结点的链表上有空间可以使用
-		//返回这个删除空间的指针
+		//返回指向该空间的指针，并把该空间从链表中删除
 		return freeList.Pop();
 	}
 	else
 	{
-		//链表上没有，就只能从centre cache中申请
+		//链表上没有，就只能从centre cache中获取多个该大小，个数由需要空间大小确认
+		//返回一个链表
 		return FechFromCentralCache(SizeClass::RoundUp(size));
 	}
 }
@@ -71,6 +73,7 @@ void* ThreadCache::FechFromCentralCache(size_t size)
 	{
 		size_t index = SizeClass::ListIndex(size);
 		FreeList& freelist = _freeLists[index];
+		//从中心缓存获取多个对象用pushRange插入
 		freelist.PushRange(NextObj(start), end);
 
 		return start;

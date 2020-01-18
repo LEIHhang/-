@@ -34,5 +34,6 @@ public:
 private:
 	char* _start;
 	char* _end;
+
 	T* freeList;
 };

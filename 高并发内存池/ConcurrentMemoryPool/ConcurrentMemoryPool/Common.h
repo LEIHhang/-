@@ -3,19 +3,21 @@
 #include<iostream>
 #include<assert.h>
 #include<Windows.h>
+#include"ThreadCache.h"
 using namespace std;
 //65537
 const size_t MAX_SIZE = 64 * 1024; //64k以下的从threadcache申请0-16页
-const size_t NFREE_LIST = MAX_SIZE / 8; //8k，表明链表的最大长度
+const size_t NFREE_LIST = MAX_SIZE / 8; //8k，表明各种不同大小对象链表的最大长度，因为每个对象以8对齐。
 const size_t MAX_PAGES = 129;//申请的最大页数
 const size_t PAGE_SHIFT = 12; //4k为页的位移
 
 inline void*& NextObj(void* obj)
 {
-	//返回obj指向空间前四/八个字节的指针,也就是下一个节点的指针
+	//obj是指向要插入空间的指针，这里返回它插入空间的前四个字节的数据
 	return *(void**)obj;
 }
-//这个类是一个存放固定大小对象内存空间的链表
+
+//这个类是在每个线程缓存中里每个不同大小对象的一个存放固定大小对象内存空间的链表
 class FreeList
 {
 public:
@@ -61,10 +63,10 @@ public:
 	}
 	bool Empty()
 	{
-		return (_freelist == nullptr);
+		return _freelist == nullptr;
 	}
 private:
-	void* _freelist= nullptr;
+	void* _freelist= nullptr;//指向链表头指针
 };
 
 class SizeClass
