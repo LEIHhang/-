@@ -162,15 +162,15 @@ typedef unsigned long long PAGE_ID;
 
 struct Span
 {
-	PAGE_ID _pageid;//起始页号
-	int _pagesize;//页的数量，一个Span可能不是单页，而是多个连续页
+	PAGE_ID _pageid = 0;//起始页号
+	int _pagesize = 0;//页的数量，一个Span可能不是单页，而是多个连续页
 	FreeList _freelist;//对象自由链表
-	int _usecount;//内存块对象使用计数
+	int _usecount = 0;//内存块对象使用计数
 
 	size_t objsize;//对象大小
 
-	Span* _next;
-	Span* _prev;
+	Span* _next = nullptr;
+	Span* _prev = nullptr;
 };
 
 //SpanList是一个将Span链起来的带头节点的双向循环链表，central cache就是一个SpanList数组
