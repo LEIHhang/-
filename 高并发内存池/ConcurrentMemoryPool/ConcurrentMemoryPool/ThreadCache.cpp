@@ -17,6 +17,7 @@ void* ThreadCache::Allocte(size_t size)
 	{
 		//链表上没有，就只能从centre cache中获取多个该大小，个数由需要空间大小确认
 		//返回一个链表
+		//因为获取的话不是单个获取，获取多个，所以这个函数需要在thread内设置
 		return FechFromCentralCache(SizeClass::RoundUp(size));
 	}
 }
@@ -64,6 +65,7 @@ void* ThreadCache::FechFromCentralCache(size_t size)
 	void* start = nullptr;
 	void* end = nullptr;
 	//actual 实际获取到的对象
+	//start 和end都是输出型参数 从中心缓存获取一个链表
 	int actualNum = centralCacheInst.FetchRangeObj(start, end, num, size);
 	if (actualNum == 1)
 	{

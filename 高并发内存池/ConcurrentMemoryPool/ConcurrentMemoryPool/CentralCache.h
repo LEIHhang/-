@@ -17,6 +17,7 @@ private:
 	SpanList _spanlists[NFREE_LIST];
 };
 
+//静态区的数据是多个线程共享
 static CentralCache centralCacheInst;
 //span 跨度：管理页为单位的内存对象，本质是方便做合并，解决内存碎片。
 

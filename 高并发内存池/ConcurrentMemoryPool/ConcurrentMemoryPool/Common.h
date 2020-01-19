@@ -8,7 +8,7 @@ using namespace std;
 //65537
 const size_t MAX_SIZE = 64 * 1024; //64k以下的从threadcache申请0-16页
 const size_t NFREE_LIST = MAX_SIZE / 8; //8k，表明各种不同大小对象链表的最大长度，因为每个对象以8对齐。
-const size_t MAX_PAGES = 129;//申请的最大页数
+const size_t MAX_PAGES = 129;//申请的最大页数128
 const size_t PAGE_SHIFT = 12; //4k为页的位移
 
 inline void*& NextObj(void* obj)
@@ -36,7 +36,7 @@ public:
 		//head是一个指向头结点的指针，赋值给另一个指针，那么这个指针也指向头结点
 		_freelist = head;
 	}
-	size_t PopRange(void* start, void* end, size_t num)
+	size_t PopRange(void*& start, void*& end, size_t num)
 	{
 		size_t actualNum = 0;
 		void* cur = _freelist;
@@ -88,7 +88,7 @@ public:
 	static inline size_t ListIndex(size_t size)
 	{
 		assert(size <= MAX_SIZE);
-		static int group_array[3] = { 16, 72, 128 };
+		static int group_array[3] = { 16, 72, 128 };//下标值
 		if (size <= 128)
 			return _ListIndex(size, 3);
 		else if (size <= 1024)
@@ -124,7 +124,7 @@ public:
 
 		return -1;
 	}
-	//针对每一个size挪动Num个对象过去
+	//针对每一个size挪动Num个对象过去，2-512个之间
 	static size_t NumMoveSize(size_t size)
 	{
 		if (size == 0)
@@ -133,16 +133,19 @@ public:
 
 		if (num < 2)
 			num = 2;
-
+		//参数调优问题，可以自己设置//后期测试
 		if (num > 512)
 			num = 512;
 		return num;
 	}
 
+	//根据申请空间大小，判断向page申请需要多少页
 	static size_t NumMovePage(size_t size)
 	{
+		//num获取申请个数，npage获得申请总大小。
 		size_t num = NumMoveSize(size);
 		size_t npage = num*size;
+		//总大小除4k
 		npage >>= 12;
 		if (npage == 0)
 			npage = 1;
@@ -159,8 +162,8 @@ typedef unsigned long long PAGE_ID;
 
 struct Span
 {
-	PAGE_ID _pageid;//页号
-	int _pagesize;//页的数量
+	PAGE_ID _pageid;//起始页号
+	int _pagesize;//页的数量，一个Span可能不是单页，而是多个连续页
 	FreeList _freelist;//对象自由链表
 	int _usecount;//内存块对象使用计数
 
@@ -170,7 +173,8 @@ struct Span
 	Span* _prev;
 };
 
-//SpanList是一个将Span链起来的带头节点的循环链表
+//SpanList是一个将Span链起来的带头节点的双向循环链表，central cache就是一个SpanList数组
+//Span里，又是一个特殊的链表，头指针的链表
 class SpanList
 {
 public:
