@@ -2,9 +2,17 @@
 #pragma once
 #include<iostream>
 #include<assert.h>
+#include<thread>
+#include<map>
+#include<mutex>
+#ifdef _WIN32
 #include<Windows.h>
-#include"ThreadCache.h"
-using namespace std;
+#endif //WIN32
+
+//using namespace std;
+
+using std::cout;
+using std::endl;
 //65537
 const size_t MAX_SIZE = 64 * 1024; //64k以下的从threadcache申请0-16页
 const size_t NFREE_LIST = MAX_SIZE / 8; //8k，表明各种不同大小对象链表的最大长度，因为每个对象以8对齐。
@@ -21,20 +29,35 @@ inline void*& NextObj(void* obj)
 class FreeList
 {
 public:
+	void Clear()
+	{
+		_freelist = nullptr;
+	}
 	void Push(void* obj)
 	{
 		//头插
 		NextObj(obj) = _freelist;
 		_freelist = obj;
+		++_num;
 	}
 
-	void PushRange(void* head, void* tail)
+	void* Pop()
+	{
+		//头删
+		void* obj = _freelist;
+		_freelist = NextObj(obj);
+		--_num;
+		return obj;
+	}
+
+	void PushRange(void* head, void* tail,size_t num)
 	{
 		//头插
 		//_freelist指向的地址赋值给tail指向结点的前四个字节上，即让tail指向头一个结点
 		NextObj(tail) = _freelist;
 		//head是一个指向头结点的指针，赋值给另一个指针，那么这个指针也指向头结点
 		_freelist = head;
+		_num += num;
 	}
 	size_t PopRange(void*& start, void*& end, size_t num)
 	{
@@ -51,22 +74,22 @@ public:
 		end = prev;
 		_freelist = cur;
 
+		_num -= actualNum;
 		return actualNum;
 	}
 
-	void* Pop()
+	size_t Num()
 	{
-		//头删
-		void* obj = _freelist;
-		_freelist = NextObj(obj);
-		return obj;
+		return _num;
 	}
 	bool Empty()
 	{
 		return _freelist == nullptr;
 	}
+
 private:
 	void* _freelist= nullptr;//指向链表头指针
+	size_t _num = 0;
 };
 
 class SizeClass
@@ -163,11 +186,11 @@ typedef unsigned long long PAGE_ID;
 struct Span
 {
 	PAGE_ID _pageid = 0;//起始页号
-	int _pagesize = 0;//页的数量，一个Span可能不是单页，而是多个连续页
+	PAGE_ID _pagesize = 0;//页的数量，一个Span可能不是单页，而是多个连续页
 	FreeList _freelist;//对象自由链表
 	int _usecount = 0;//内存块对象使用计数
 
-	size_t objsize;//对象大小
+	size_t _objsize = 0;//自由链表对象大小
 
 	Span* _next = nullptr;
 	Span* _prev = nullptr;
@@ -237,8 +260,18 @@ public:
 		prev->_next = next;
 		next->_prev = prev;
 	}
+
+	void Lock()
+	{
+		_mtx.lock();
+	}
+	void Unlock()
+	{
+		_mtx.unlock();
+	}
 private:
 	Span* _head;
+	std::mutex _mtx;
 };
 
 //向系统申请numpage页内存挂到自由链表
@@ -254,4 +287,13 @@ inline static void* SystemAllocPage(size_t num_page)
 		throw std::bad_alloc();
 
 	return ptr;
+}
+
+inline static void SystemFree(void* ptr)
+{
+#ifdef _WIN32
+	VirtualFree(ptr, 0, MEM_RELEASE);
+#else
+	
+#endif
 }

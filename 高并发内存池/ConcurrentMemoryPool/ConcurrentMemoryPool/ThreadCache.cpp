@@ -9,13 +9,13 @@ void* ThreadCache::Allocte(size_t size)
 	FreeList& freeList = _freeLists[index];
 	if (!freeList.Empty())
 	{
-		//表示当前结点的链表上有空间可以使用
+		//表示在thread cache中当前结点的链表上有空间可以使用
 		//返回指向该空间的指针，并把该空间从链表中删除
 		return freeList.Pop();
 	}
 	else
 	{
-		//链表上没有，就只能从centre cache中获取多个该大小，个数由需要空间大小确认
+		//thread cache中没有 就从central cache中获取多个该大小，个数由需要空间大小确认
 		//返回一个链表
 		//因为获取的话不是单个获取，获取多个，所以这个函数需要在thread内设置
 		return FechFromCentralCache(SizeClass::RoundUp(size));
@@ -27,14 +27,23 @@ void ThreadCache::Deallocte(void* ptr, size_t size)
 	FreeList& freeList = _freeLists[index];
 	freeList.Push(ptr);
 
-	//if ()
-	//{
-	//用来将资源返还给centralcache。
-	//	ReleaseToCentralCache();
-	//}
+	//对象个数满足一定条件|内存大小过大 就会释放给cetral cache
+	size_t num = SizeClass::NumMoveSize(size);
+	if (freeList.Num()>= num)
+	{
+		//自由链表过长舍弃num个数据块
+		ListTooLong(freeList, num, size);
+	}
 }
 
+void ThreadCache::ListTooLong(FreeList& freeList, size_t num,size_t size)
+{
+	void* start = nullptr, *end = nullptr;
+	freeList.PopRange(start, end, num);
+	NextObj(end) = nullptr;
+	centralCacheInst.ReleaseListToSpans(start,size);
 
+}
 //独立测试thread cache
 //void* ThreadCache::FechFromCentralCache(size_t size)
 //{
@@ -73,10 +82,11 @@ void* ThreadCache::FechFromCentralCache(size_t size)
 	}
 	else
 	{
+		//成功获取到多个空间，返回一个，将剩余的挂载到thread cache上
 		size_t index = SizeClass::ListIndex(size);
 		FreeList& freelist = _freeLists[index];
-		//从中心缓存获取多个对象用pushRange插入
-		freelist.PushRange(NextObj(start), end);
+		//从中心缓存获取多个对象用pushRange插入，
+		freelist.PushRange(NextObj(start), end,actualNum-1);
 
 		return start;
 	}
