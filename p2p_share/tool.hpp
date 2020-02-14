@@ -47,7 +47,7 @@ public:
 			std::cout << "描述信息：" << p_adapters->Description << std::endl;
 			std::cout << "IP地址：" << p_adapters->IpAddressList.IpAddress.String << std::endl;
 			std::cout << "子网掩码：" << p_adapters->IpAddressList.IpMask.String << std::endl;
-
+			std::cout << std::endl;
 			p_adapters = p_adapters->Next;
 		}
 		delete p_adapters;
