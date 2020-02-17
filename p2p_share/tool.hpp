@@ -56,6 +56,7 @@ public:
 			if (adapter._ip_addr != 0)//去掉没有启用的网卡
 			{
 				list->push_back(adapter);
+				std::cout << adapter._ip_addr << std::endl;
 				std::cout << "网卡名称：" << p_adapters->AdapterName << std::endl;
 				std::cout << "描述信息：" << p_adapters->Description << std::endl;
 				std::cout << "IP地址：" << p_adapters->IpAddressList.IpAddress.String << std::endl;
