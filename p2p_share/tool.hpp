@@ -6,6 +6,7 @@
 #include<Iphlpapi.h>
 #include<vector>
 #include<stdint.h>
+#include <cstdlib>
 #pragma comment(lib,"Iphlpapi.lib")//包含静态库
 #pragma comment(lib,"ws2_32.lib")
 #else
@@ -57,6 +58,9 @@ public:
 			{
 				list->push_back(adapter);
 				std::cout << adapter._ip_addr << std::endl;
+				char s[40];
+				_itoa_s(adapter._ip_addr, s, 2);
+				printf("变量i的二进制数为：%s\n", s);
 				std::cout << "网卡名称：" << p_adapters->AdapterName << std::endl;
 				std::cout << "描述信息：" << p_adapters->Description << std::endl;
 				std::cout << "IP地址：" << p_adapters->IpAddressList.IpAddress.String << std::endl;
