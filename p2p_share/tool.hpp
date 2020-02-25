@@ -7,6 +7,7 @@
 #include<vector>
 #include<stdint.h>
 #include <cstdlib>
+#include<fstream>
 #pragma comment(lib,"Iphlpapi.lib")//包含静态库
 #pragma comment(lib,"ws2_32.lib")
 #else
@@ -76,4 +77,27 @@ public:
 #else
 	bool GetAllAdapter(std::vector<Adapter> *list);
 #endif
+};
+
+class FileTool
+{
+public:
+	static bool Write(const std::string& file_name,const std::string& body,const uint32_t offset = 0)
+	{
+		std::ofstream  ofs(file_name);
+		if (ofs.is_open() == false)
+		{
+			std::cout << "打开["<<file_name.c_str()<<"]文件打开失败" << std::endl;
+			return false;
+		}
+		ofs.seekp(offset, std::ios::beg);
+		ofs.write(&body[0], body.size());
+		if (ofs.good() == false)
+		{
+			std::cerr << "向文件写入数据失败" << std::endl;
+			return false;
+		}
+		ofs.close();
+		return true;
+	}
 };
