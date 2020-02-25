@@ -1,5 +1,24 @@
 #include"tool.hpp"
 #include"httplib.h"
+#include<boost/filesystem.hpp>
+void Scandir()
+{
+	const char *ptr = "./";
+	boost::filesystem::directory_iterator begin(ptr);//定义一个目录迭代器对象
+	boost::filesystem::directory_iterator end;//directory_iterator默认构造函数会构造指向“end"的iterator
+	for (; begin != end; ++begin)
+	{
+		//begin->status() 目录中当前文件的状态信息
+		if (boost::filesystem::is_directory(begin->status()))
+		{
+			std::cout << begin->path().string() << "是一个目录\n";
+		}
+		else
+		{
+			std::cout << begin->path().string() << "是一个普通文件\n";
+		}
+	}
+}
 void HellowWorld(const httplib::Request &res, httplib::Response &rsp)
 {
 	printf("收到一个请求\n");
@@ -8,11 +27,12 @@ void HellowWorld(const httplib::Request &res, httplib::Response &rsp)
 }
 int main(int argc,char* argv[])
 {
-	std::vector<Adapter> list;
+	/*std::vector<Adapter> list;
 	AdapterTool::GetAllAdapter(&list);
 
 	httplib::Server srv;
 	srv.Get("/", HellowWorld);
-	srv.listen("0.0.0.0", 9000);
+	srv.listen("0.0.0.0", 9000);*/
+	Scandir();
 	return 0;
 }
