@@ -95,9 +95,31 @@ public:
 		if (ofs.good() == false)
 		{
 			std::cerr << "向文件写入数据失败" << std::endl;
+			ofs.close();
 			return false;
 		}
 		ofs.close();
+		return true;
+	}
+	static bool Read(const std::string& file_name, std::string* body)
+	{
+		std::ifstream ifs(file_name);
+		if (!ifs.is_open())
+		{
+			std::cerr << "文件打开失败\n";
+			ifs.close();
+			return false;
+		}
+		int64_t filesize = boost::filesystem::file_size(file_name);
+		body->resize(filesize);
+		ifs.read(&(*body)[0], filesize);
+		if (!ifs.good())
+		{
+			std::cerr << "文件写入错误\n";
+			ifs.close();
+			return false;
+		}
+		ifs.close();
 		return true;
 	}
 };
