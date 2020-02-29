@@ -8,6 +8,8 @@
 #include<stdint.h>
 #include <cstdlib>
 #include<fstream>
+#include<sstream>
+#include<boost\filesystem.hpp>
 #pragma comment(lib,"Iphlpapi.lib")//°üº¬¾²Ì¬¿â
 #pragma comment(lib,"ws2_32.lib")
 #else
@@ -121,5 +123,18 @@ public:
 		}
 		ifs.close();
 		return true;
+	}
+};
+
+class StringTool
+{
+public:
+	static uint64_t String2Dig(const std::string& num)
+	{
+		std::stringstream tmp;
+		tmp << num;
+		uint64_t len;
+		tmp >> len;
+		return len;
 	}
 };
