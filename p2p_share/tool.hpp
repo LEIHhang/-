@@ -60,20 +60,21 @@ public:
 			if (adapter._ip_addr != 0)//去掉没有启用的网卡
 			{
 				list->push_back(adapter);
-				std::cout << adapter._ip_addr << std::endl;
+				//std::cout << adapter._ip_addr << std::endl;
 				char s[40];
 				_itoa_s(adapter._ip_addr, s, 2);
-				printf("变量i的二进制数为：%s\n", s);
+				/*printf("变量i的二进制数为：%s\n", s);
 				std::cout << "网卡名称：" << p_adapters->AdapterName << std::endl;
 				std::cout << "描述信息：" << p_adapters->Description << std::endl;
 				std::cout << "IP地址：" << p_adapters->IpAddressList.IpAddress.String << std::endl;
 				std::cout << "子网掩码：" << p_adapters->IpAddressList.IpMask.String << std::endl;
-				std::cout << std::endl;
+				std::cout << std::endl;*/
 			}
 			//PIP_ADAPTER_INFO tmp = p_adapters;
 			p_adapters = p_adapters->Next;
 		}
 		delete p_adapters;
+		list->resize(1);
 		return true;
 	}
 #else
@@ -90,7 +91,9 @@ public:
 	}
 	static bool Write(const std::string& file_name,const std::string& body,const uint32_t offset = 0)
 	{
+		std::cout << "已进入文件写入模块" << file_name << std::endl;
 		std::ofstream  ofs(file_name);
+		std::cout << file_name << std::endl;
 		if (ofs.is_open() == false)
 		{
 			std::cout << "打开["<<file_name.c_str()<<"]文件打开失败" << std::endl;
@@ -98,12 +101,14 @@ public:
 		}
 		ofs.seekp(offset, std::ios::beg);
 		ofs.write(&body[0], body.size());
+		std::cout << body << std::endl;
 		if (ofs.good() == false)
 		{
 			std::cerr << "向文件写入数据失败" << std::endl;
 			ofs.close();
 			return false;
 		}
+		std::cout << "文件写入成功\n";
 		ofs.close();
 		return true;
 	}
@@ -192,5 +197,10 @@ public:
 	static bool GetRange(const std::string& range_str, int64_t* range_start, int64_t* range_end)
 	{
 		//处理这种数据bytes =  0 - 99
+		int16_t equal_sign = range_str.find('=');
+		int16_t sub_sign = range_str.find('-');
+		*range_start = std::atoi(range_str.substr(equal_sign + 1, sub_sign - equal_sign - 1).c_str());
+		*range_end = std::atoi(range_str.substr(sub_sign + 1).c_str());
+		return true;
 	}
 };

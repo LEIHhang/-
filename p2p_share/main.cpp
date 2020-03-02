@@ -33,12 +33,20 @@ void test1()
 	srv.listen("0.0.0.0", 9000);*/
 	//Scandir();
 }
+void ClientRun()
+{
+	Sleep(1);
+	Client cli;
+	cli.Start();
+}
 void test2()
 {
-
+	std::thread cli_thr(ClientRun);
+	Server srv;
+	srv.start();
 }
 int main(int argc,char* argv[])
 {
-	
+	test2();
 	return 0;
 }
