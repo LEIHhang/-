@@ -1,6 +1,4 @@
-#include"tool.hpp"
-#include"httplib.h"
-#include<boost/filesystem.hpp>
+#include"client.hpp"
 void Scandir()
 {
 	const char *ptr = "./";
@@ -25,7 +23,7 @@ void HellowWorld(const httplib::Request &res, httplib::Response &rsp)
 	rsp.set_content("<html><h1>hellow world</h1><html>", "text/html");
 	rsp.status = 200;
 }
-int main(int argc,char* argv[])
+void test1()
 {
 	/*std::vector<Adapter> list;
 	AdapterTool::GetAllAdapter(&list);
@@ -33,6 +31,14 @@ int main(int argc,char* argv[])
 	httplib::Server srv;
 	srv.Get("/", HellowWorld);
 	srv.listen("0.0.0.0", 9000);*/
-	Scandir();
+	//Scandir();
+}
+void test2()
+{
+
+}
+int main(int argc,char* argv[])
+{
+	
 	return 0;
 }

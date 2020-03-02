@@ -84,6 +84,10 @@ public:
 class FileTool
 {
 public:
+	static int64_t GetFileSize(const std::string& file_name)
+	{
+		return boost::filesystem::file_size(file_name);
+	}
 	static bool Write(const std::string& file_name,const std::string& body,const uint32_t offset = 0)
 	{
 		std::ofstream  ofs(file_name);
@@ -103,25 +107,68 @@ public:
 		ofs.close();
 		return true;
 	}
+	//把文件内容读取到响应正文中，也就是把磁盘上的数据读取到内存上
 	static bool Read(const std::string& file_name, std::string* body)
 	{
-		std::ifstream ifs(file_name);
-		if (!ifs.is_open())
+		//std::ifstream ifs(file_name);
+		//if (!ifs.is_open())
+		//{
+		//	std::cerr << "文件打开失败\n";
+		//	ifs.close();
+		//	return false;
+		//}
+		//int64_t filesize = boost::filesystem::file_size(file_name);
+		//body->resize(filesize);
+		//ifs.read(&(*body)[0], filesize);
+		//if (!ifs.good())
+		//{
+		//	std::cerr << "文件写入错误\n";
+		//	ifs.close();
+		//	return false;
+		//}
+		//ifs.close();
+		//return true;
+		int64_t file_size = boost::filesystem::file_size(file_name);
+		body->resize(file_size);
+		FILE* fp = NULL;
+		fopen_s(&fp, file_name.c_str(), "rb+");
+		if (fp == NULL)
 		{
-			std::cerr << "文件打开失败\n";
-			ifs.close();
+			std::cout << "文件读取失败\n";
+			fclose(fp);
 			return false;
 		}
-		int64_t filesize = boost::filesystem::file_size(file_name);
-		body->resize(filesize);
-		ifs.read(&(*body)[0], filesize);
-		if (!ifs.good())
+		fseek(fp, 0, SEEK_SET);
+		int64_t ret = fread(&(*body)[0], 1, file_size, fp);
+		if (ret != file_size)
 		{
-			std::cerr << "文件写入错误\n";
-			ifs.close();
+			std::cerr << "从文件读取数据失败\n";
+			fclose(fp);
 			return false;
 		}
-		ifs.close();
+		fclose(fp);
+		return true;
+	}
+	static bool RangeRead(const std::string file_name, std::string* body, int64_t len, long offset)
+	{
+		body->resize(len);
+		FILE* fp = NULL;
+		fopen_s(&fp, file_name.c_str(), "rb+");
+		if (fp == NULL)
+		{
+			std::cout << "分块文件读取失败\n";
+			fclose(fp);
+			return false;
+		}
+		fseek(fp, offset, SEEK_SET);
+		int64_t ret = fread(&(*body)[0], 1, len, fp);
+		if (ret != len)
+		{
+			std::cerr << "从文件读取数据失败\n";
+			fclose(fp);
+			return false;
+		}
+		fclose(fp);
 		return true;
 	}
 };
@@ -136,5 +183,14 @@ public:
 		uint64_t len;
 		tmp >> len;
 		return len;
+	}
+};
+
+class HeaderTool
+{
+public:
+	static bool GetRange(const std::string& range_str, int64_t* range_start, int64_t* range_end)
+	{
+		//处理这种数据bytes =  0 - 99
 	}
 };
