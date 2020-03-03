@@ -91,8 +91,7 @@ public:
 	}
 	static bool Write(const std::string& file_name,const std::string& body,const uint32_t offset = 0)
 	{
-		std::cout << "已进入文件写入模块" << file_name << std::endl;
-		std::ofstream  ofs(file_name);
+		/*std::ofstream  ofs(file_name);
 		std::cout << file_name << std::endl;
 		if (ofs.is_open() == false)
 		{
@@ -110,6 +109,24 @@ public:
 		}
 		std::cout << "文件写入成功\n";
 		ofs.close();
+		return true;*/
+		FILE* fp = NULL;
+		fopen_s(&fp, file_name.c_str(), "ab+");
+		if (fp == NULL)
+		{
+			std::cout << "文件读取失败\n";
+			fclose(fp);
+			return false;
+		}
+		fseek(fp, offset, SEEK_SET);
+		int ret = fwrite(&body[0], 1, body.size(), fp);
+		if (ret != body.size())
+		{
+			std::cerr << "从文件读取数据失败\n";
+			fclose(fp);
+			return false;
+		}
+		fclose(fp);
 		return true;
 	}
 	//把文件内容读取到响应正文中，也就是把磁盘上的数据读取到内存上
@@ -167,6 +184,7 @@ public:
 		}
 		fseek(fp, offset, SEEK_SET);
 		int64_t ret = fread(&(*body)[0], 1, len, fp);
+		std::cout << "分段文件读取成功\n";
 		if (ret != len)
 		{
 			std::cerr << "从文件读取数据失败\n";
@@ -199,8 +217,14 @@ public:
 		//处理这种数据bytes =  0 - 99
 		int16_t equal_sign = range_str.find('=');
 		int16_t sub_sign = range_str.find('-');
-		*range_start = std::atoi(range_str.substr(equal_sign + 1, sub_sign - equal_sign - 1).c_str());
-		*range_end = std::atoi(range_str.substr(sub_sign + 1).c_str());
+		std::cout << range_str << std::endl;
+		std::cout << "equal_sign:" << equal_sign << std::endl;
+		std::cout << "sub_sign:" << sub_sign << std::endl;
+
+		*range_start = std::atol(range_str.substr(equal_sign + 1, sub_sign - equal_sign - 1).c_str());
+		std::cout << "range_str.substr(equal_sign + 1, sub_sign - equal_sign - 1):" << range_str.substr(equal_sign + 1, sub_sign - equal_sign - 1) << std::endl;
+		*range_end = std::atol(range_str.substr(sub_sign + 1).c_str());
+		std::cout << "range_str.substr(sub_sign + 1):" << range_str.substr(sub_sign + 1) << std::endl;
 		return true;
 	}
 };
