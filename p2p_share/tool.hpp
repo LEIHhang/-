@@ -74,7 +74,7 @@ public:
 			p_adapters = p_adapters->Next;
 		}
 		delete p_adapters;
-		list->resize(1);
+		//list->resize(1);
 		return true;
 	}
 #else
