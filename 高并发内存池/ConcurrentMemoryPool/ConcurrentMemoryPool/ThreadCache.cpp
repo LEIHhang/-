@@ -41,7 +41,7 @@ void ThreadCache::ListTooLong(FreeList& freeList, size_t num,size_t size)
 	void* start = nullptr, *end = nullptr;
 	freeList.PopRange(start, end, num);
 	NextObj(end) = nullptr;
-	centralCacheInst.ReleaseListToSpans(start,size);
+	CentralCache::GetInstance().ReleaseListToSpans(start,size);
 
 }
 //独立测试thread cache
@@ -75,7 +75,7 @@ void* ThreadCache::FechFromCentralCache(size_t size)
 	void* end = nullptr;
 	//actual 实际获取到的对象
 	//start 和end都是输出型参数 从中心缓存获取一个链表
-	int actualNum = centralCacheInst.FetchRangeObj(start, end, num, size);
+	int actualNum = CentralCache::GetInstance().FetchRangeObj(start, end, num, size);
 	if (actualNum == 1)
 	{
 		return start;

@@ -1,6 +1,6 @@
 #include"PageCache.h"
 
-Span* PageCache::NewSpan(size_t numpage)
+Span* PageCache::_NewSpan(size_t numpage)
 {
 	//_spanLists[numpage].Lock();
 	if (!_spanLists[numpage].Empty())
@@ -50,9 +50,15 @@ Span* PageCache::NewSpan(size_t numpage)
 	}
 	_spanLists[bigspan->_pagesize].PushFront(bigspan);
 
-	return NewSpan(numpage);
+	return _NewSpan(numpage);
 }
-
+Span* PageCache::NewSpan(size_t numpage)
+{
+	_mutex.lock();
+	Span* span = _NewSpan(numpage);
+	_mutex.unlock();
+	return span;
+}
 Span* PageCache::GetIdToSpan(PAGE_ID id)
 {
 	//std::map<PAGE_ID, Span*> ::iterator it = _idSpanMap.find(id);
@@ -90,6 +96,8 @@ void PageCache::ReleaseSpanToPageCache(Span* span)
 			break;
 		}
 
+		if (span->_pagesize + prevSpan->_pagesize >= MAX_PAGES)
+			break;
 		//ºÏ²¢
 		span->_pageid = prevSpan->_pageid;
 		span->_pagesize += prevSpan->_pagesize;
@@ -118,6 +126,8 @@ void PageCache::ReleaseSpanToPageCache(Span* span)
 		{
 			break;
 		}
+		if (span->_pagesize + nextSpan->_pagesize >= MAX_PAGES)
+			break;
 		span->_pagesize += nextSpan->_pagesize;
 		for (PAGE_ID i = 0; i < nextSpan->_pagesize; ++i)
 		{

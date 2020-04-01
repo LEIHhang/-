@@ -21,7 +21,7 @@ const size_t PAGE_SHIFT = 12; //4k为页的位移
 
 inline void*& NextObj(void* obj)
 {
-	//obj是指向要插入空间的指针，这里返回它插入空间的前四个字节的数据
+	//obj是指向要插入空间的指针，这里返回它插入空间的前四/八个字节的数据
 	return *(void**)obj;
 }
 
@@ -147,7 +147,7 @@ public:
 
 		return -1;
 	}
-	//针对每一个size挪动Num个对象过去，2-512个之间
+	//针对不同的size设置申请该size的多少
 	static size_t NumMoveSize(size_t size)
 	{
 		if (size == 0)

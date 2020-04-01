@@ -76,9 +76,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BeachMark.cpp" />
     <ClCompile Include="CentralCache.cpp" />
     <ClCompile Include="PageCache.cpp" />
-    <ClCompile Include="Test.cpp" />
+    <ClCompile Include="unitill.cpp" />
     <ClCompile Include="ThreadCache.cpp" />
   </ItemGroup>
   <ItemGroup>
