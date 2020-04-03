@@ -1,6 +1,6 @@
 #pragma once
 #include"Common.h"
-
+#include"radix.hpp"
 class PageCache
 {
 public:
@@ -17,6 +17,6 @@ private:
 	PageCache()
 	{}
 	SpanList _spanLists[MAX_PAGES];//สนำร1-128
-	std::map<PAGE_ID, Span*> _idSpanMap;
+	radix _idRadix;
 	std::mutex _mutex;
 };
