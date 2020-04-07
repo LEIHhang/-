@@ -24,6 +24,7 @@ Span* PageCache::_NewSpan(size_t numpage)
 			for (PAGE_ID i = 0; i < numpage; ++i)
 			{
 				//切页后更改映射关系
+				_idRadix.radix_tree_delete(splitspan->_pageid + i);
 				_idRadix.radix_tree_insert(splitspan->_pageid + i, splitspan);
 			}
 

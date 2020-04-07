@@ -1,8 +1,8 @@
 ﻿  BeachMark.cpp
-C:\github上传代码\项目\高并发内存池\ConcurrentMemoryPool\ConcurrentMemoryPool\radix.hpp(91,1): warning C4554: “<<”: 检查运算符优先级是否存在的可能的错误；使用括号阐明优先级
-C:\github上传代码\项目\高并发内存池\ConcurrentMemoryPool\ConcurrentMemoryPool\radix.hpp(114,1): warning C4554: “<<”: 检查运算符优先级是否存在的可能的错误；使用括号阐明优先级
-C:\github上传代码\项目\高并发内存池\ConcurrentMemoryPool\ConcurrentMemoryPool\radix.hpp(142,1): warning C4554: “<<”: 检查运算符优先级是否存在的可能的错误；使用括号阐明优先级
-C:\github上传代码\项目\高并发内存池\ConcurrentMemoryPool\ConcurrentMemoryPool\radix.hpp(155,11): warning C4477: “printf”: 格式字符串“%x”需要类型“unsigned int”的参数，但可变参数 1 拥有了类型“ptr_t”
+C:\github上传代码\项目\高并发内存池\ConcurrentMemoryPool\ConcurrentMemoryPool\radix.hpp(104,1): warning C4554: “<<”: 检查运算符优先级是否存在的可能的错误；使用括号阐明优先级
+C:\github上传代码\项目\高并发内存池\ConcurrentMemoryPool\ConcurrentMemoryPool\radix.hpp(127,1): warning C4554: “<<”: 检查运算符优先级是否存在的可能的错误；使用括号阐明优先级
+C:\github上传代码\项目\高并发内存池\ConcurrentMemoryPool\ConcurrentMemoryPool\radix.hpp(155,1): warning C4554: “<<”: 检查运算符优先级是否存在的可能的错误；使用括号阐明优先级
+C:\github上传代码\项目\高并发内存池\ConcurrentMemoryPool\ConcurrentMemoryPool\radix.hpp(168,11): warning C4477: “printf”: 格式字符串“%x”需要类型“unsigned int”的参数，但可变参数 1 拥有了类型“ptr_t”
 LINK : warning LNK4075: 忽略“/INCREMENTAL”(由于“/PROFILE”规范)
 BeachMark.obj : warning LNK4075: 忽略“/EDITANDCONTINUE”(由于“/OPT:REF”规范)
   ConcurrentMemoryPool.vcxproj -> C:\github上传代码\项目\高并发内存池\ConcurrentMemoryPool\ConcurrentMemoryPool\Debug\ConcurrentMemoryPool.exe

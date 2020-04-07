@@ -17,5 +17,5 @@ private:
 };
 
 //定义每个线程独享的静态全局变量
-//_declspec (thread) static ThreadCache* tlsThreadCache = nullptr;
-static ThreadCache tlsThreadCache;
+_declspec (thread) static ThreadCache* tlsThreadCache = nullptr;
+//static ThreadCache tlsThreadCache;
