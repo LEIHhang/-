@@ -49,7 +49,7 @@ public:
 			//重新获取网卡信息
 			GetAdaptersInfo(p_adapters, (PULONG)&all_adapters_size);
 		}
-		
+		PIP_ADAPTER_INFO Flag = p_adapters;
 		while (p_adapters)
 		{
 			Adapter adapter;
@@ -61,8 +61,8 @@ public:
 			{
 				list->push_back(adapter);
 				//std::cout << adapter._ip_addr << std::endl;
-				char s[40];
-				_itoa_s(adapter._ip_addr, s, 2);
+				/*char s[40];
+				_itoa_s(adapter._ip_addr, s, 2);*/
 				/*printf("变量i的二进制数为：%s\n", s);
 				std::cout << "网卡名称：" << p_adapters->AdapterName << std::endl;
 				std::cout << "描述信息：" << p_adapters->Description << std::endl;
@@ -73,8 +73,7 @@ public:
 			//PIP_ADAPTER_INFO tmp = p_adapters;
 			p_adapters = p_adapters->Next;
 		}
-		delete p_adapters;
-		//list->resize(1);
+		delete []Flag;
 		return true;
 	}
 #else
