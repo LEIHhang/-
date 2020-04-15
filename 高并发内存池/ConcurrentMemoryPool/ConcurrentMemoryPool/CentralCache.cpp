@@ -28,11 +28,12 @@ Span* CentralCache::GetOneSpan(size_t size)
 	//把span对象切成对应大小挂到span的freelist中
 	char* start = (char*)(span->_pageid << 12);
 	char* end = start + (span->_pagesize << 12);
+	int i = 0;
 	while (start < end)
 	{
 		char* obj = start;
 		start += size;
-
+		++i;
 		span->_freelist.Push(obj);
 	}
 	//设置span里自由链表啊对象大小
@@ -49,6 +50,7 @@ size_t CentralCache::FetchRangeObj(void*& start, void*& end, size_t num, size_t 
 
 	size_t index = SizeClass::ListIndex(size);
 	SpanList& spanlist = _spanlists[index];
+	//上锁
 	spanlist.Lock();
 
 	//GetOneSpan从central cache和Page获取需要的Span并返回

@@ -19,13 +19,16 @@ Span* PageCache::_NewSpan(size_t numpage)
 
 			//定义切开剩下的span
 			Span* splitspan = new Span;
+			//获取最后面页的
 			splitspan->_pageid = span->_pageid + span->_pagesize - numpage;
 			splitspan->_pagesize = numpage;
 			for (PAGE_ID i = 0; i < numpage; ++i)
 			{
 				//切页后更改映射关系
-				_idRadix.radix_tree_delete(splitspan->_pageid + i);
-				_idRadix.radix_tree_insert(splitspan->_pageid + i, splitspan);
+				//printf("删除pageid:%d\n", splitspan->_pageid + i);
+				_idRadix.Delete(splitspan->_pageid + i);
+				//printf("插入pageid:%d\n", splitspan->_pageid + i);
+				_idRadix.insert(splitspan->_pageid + i, splitspan);
 			}
 
 			span->_pagesize -= numpage;
@@ -47,8 +50,10 @@ Span* PageCache::_NewSpan(size_t numpage)
 	for (PAGE_ID i = 0; i < bigspan->_pagesize; ++i)
 	{
 		//_idRadix.insert(std::make_pair(bigspan->_pageid + i, bigspan));
-		_idRadix.radix_tree_insert(bigspan->_pageid + i,bigspan);
+		//printf("插入pageid:%d\n", bigspan->_pageid + i);
+		_idRadix.insert(bigspan->_pageid + i,bigspan);
 	}
+	//向PageCache插入一个大小为pagesize的span
 	_spanLists[bigspan->_pagesize].PushFront(bigspan);
 
 	return _NewSpan(numpage);
@@ -63,13 +68,16 @@ Span* PageCache::NewSpan(size_t numpage)
 Span* PageCache::GetIdToSpan(PAGE_ID id)
 {
 	//std::map<PAGE_ID, Span*> ::iterator it = _idRadix.find(id);
-	auto it = _idRadix.radix_tree_find(id);
-	if (it != NULL)
+	auto it = _idRadix.find(id);
+	if (it != nullptr&& it->value!=nullptr)
 	{
-		return it;
+		//printf("找到pageid%d\n", id);
+		return it->value;
 	}
 	else
 	{
+		//printf("要查找pageid%d\n", id);
+		//cout << "获取失败" << endl;
 		return nullptr;
 	}
 }
@@ -83,15 +91,15 @@ void PageCache::ReleaseSpanToPageCache(Span* span)
 		PAGE_ID prevPageId = span->_pageid - 1;
 		//span可能挂载page cache或者central cache中，但是只要存在就会在map中
 		//根据id获取span
-		auto pit = _idRadix.radix_tree_find(prevPageId);
+		auto pit = _idRadix.find(prevPageId);
 		//前面的页不存在
-		if (_idRadix.radix_tree_find(prevPageId )==NULL)
+		if (pit==nullptr||pit->value==nullptr)
 		{
 			break;
 		}
 
 		//说明前一个也还在使用中，不能合并
-		Span* prevSpan = pit;
+		Span* prevSpan = pit->value;
 		if (prevSpan->_usecount != 0)
 		{
 			break;
@@ -105,7 +113,11 @@ void PageCache::ReleaseSpanToPageCache(Span* span)
 		for (PAGE_ID i = 0; i < prevSpan->_pagesize; ++i)
 		{
 			//映射到新的span上
-			_idRadix.radix_tree_insert(prevSpan->_pageid + i,span);
+			//cout << "向前合并" << endl;
+			//printf("删除pageid:%d\n", prevSpan->_pageid + i);
+			_idRadix.Delete(prevSpan->_pageid + i);
+			//printf("插入pageid:%d\n", prevSpan->_pageid + i);
+			_idRadix.insert(prevSpan->_pageid + i,span);
 		}
 		//要先在page cache中删除该span，否则直接删除会有野指针。
 		_spanLists[prevSpan->_pagesize].Erase(prevSpan);
@@ -117,12 +129,12 @@ void PageCache::ReleaseSpanToPageCache(Span* span)
 	while (1)
 	{
 		PAGE_ID nextPageId = span->_pageid + span->_pagesize;
-		auto nextIt = _idRadix.radix_tree_find(nextPageId);
-		if (nextIt == NULL)
+		auto nextIt = _idRadix.find(nextPageId);
+		if (nextIt == nullptr || nextIt->value == nullptr)
 		{
 			break;
 		}
-		Span* nextSpan = nextIt;
+		Span* nextSpan = nextIt->value;
 		if (nextSpan->_usecount != 0)
 		{
 			break;
@@ -132,7 +144,11 @@ void PageCache::ReleaseSpanToPageCache(Span* span)
 		span->_pagesize += nextSpan->_pagesize;
 		for (PAGE_ID i = 0; i < nextSpan->_pagesize; ++i)
 		{
-			_idRadix.radix_tree_insert(nextSpan->_pageid + i,span);
+			//cout << "向后合并" << endl;
+			//printf("删除pageid:%d\n", nextSpan->_pageid + i);
+			_idRadix.Delete(nextSpan->_pageid + i);
+			//printf("插入pageid:%d\n", nextSpan->_pageid + i);
+			_idRadix.insert(nextSpan->_pageid + i,span);
 		}
 		_spanLists[nextSpan->_pagesize].Erase(nextSpan);
 		delete nextSpan;
