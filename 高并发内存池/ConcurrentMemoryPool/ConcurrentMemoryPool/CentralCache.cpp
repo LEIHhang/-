@@ -8,8 +8,6 @@ Span* CentralCache::GetOneSpan(size_t size)
 	//Begin和End只是封装了接口
 	SpanList& spanlist = _spanlists[index];
 	Span* it = spanlist.Begin();
-
-	//这里可以做一个优化，如果当前Span中的_freelist为空，就把他插入到spanlist最后一个位置。
 	//可以先头删，然后再尾插
 	while (it != spanlist.End())
 	{
@@ -22,18 +20,18 @@ Span* CentralCache::GetOneSpan(size_t size)
 			it = it->_next;
 		}
 	}
+	//运行到这里说明当前CentralCache没有该大小空间的Span
+	//计算该大小空间需要请求多少页的span
 	size_t numpage = SizeClass::NumMovePage(size);
-	//从page cache获取
+	//CentralCache向PageCache访问的接口处
 	Span* span = PageCache::GetInstance().NewSpan(numpage);
-	//把span对象切成对应大小挂到span的freelist中
+	//把从pagecache获取的内存切成对应大小挂到span的freelist中
 	char* start = (char*)(span->_pageid << 12);
 	char* end = start + (span->_pagesize << 12);
-	int i = 0;
 	while (start < end)
 	{
 		char* obj = start;
 		start += size;
-		++i;
 		span->_freelist.Push(obj);
 	}
 	//设置span里自由链表啊对象大小
@@ -50,7 +48,7 @@ size_t CentralCache::FetchRangeObj(void*& start, void*& end, size_t num, size_t 
 
 	size_t index = SizeClass::ListIndex(size);
 	SpanList& spanlist = _spanlists[index];
-	//上锁
+	//访问central需要上锁
 	spanlist.Lock();
 
 	//GetOneSpan从central cache和Page获取需要的Span并返回
@@ -80,6 +78,7 @@ void CentralCache::ReleaseListToSpans(void* start,size_t size)
 		//计算页号
 		PAGE_ID id = (PAGE_ID)start >> PAGE_SHIFT;
 		Span* span = PageCache::GetInstance().GetIdToSpan(id);
+		//找到不同的span，达到了资源准确回收的目的
 		span->_freelist.Push(start);
 		span->_usecount--;
 		//表示当前span切出去的对象全部返回，可以将SPan还给page cache，进行合并，减少内存碎片。

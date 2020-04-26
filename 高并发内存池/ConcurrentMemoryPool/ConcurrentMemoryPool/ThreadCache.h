@@ -16,6 +16,6 @@ private:
 	FreeList _freeLists[NFREE_LIST];//每一个结点都是一个链表类(FreeList)
 };
 
-//定义每个线程独享的静态全局变量
+
 _declspec (thread) static ThreadCache* tlsThreadCache = nullptr;
 //static ThreadCache tlsThreadCache;

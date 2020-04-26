@@ -83,7 +83,7 @@
     <ClCompile Include="BeachMark.cpp" />
     <ClCompile Include="CentralCache.cpp" />
     <ClCompile Include="PageCache.cpp" />
-    <ClCompile Include="unitill.cpp" />
+    <ClCompile Include="unitill_test.cpp" />
     <ClCompile Include="ThreadCache.cpp" />
   </ItemGroup>
   <ItemGroup>

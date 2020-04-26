@@ -10,14 +10,16 @@ void* ThreadCache::Allocte(size_t size)
 	if (!freeList.Empty())
 	{
 		//表示在thread cache中当前结点的链表上有空间可以使用
-		//返回指向该空间的指针，并把该空间从链表中删除
+		//返回一个该大小空间，并把该空间从链表中删除
 		return freeList.Pop();
 	}
 	else
 	{
-		//thread cache中没有 就从central cache中获取多个该大小，个数由需要空间大小确认
-		//返回一个链表
-		//因为获取的话不是单个获取，获取多个，所以这个函数需要在thread内设置
+		//thread cache中没有 就只能向central cache中获取
+		//为了减少和centralcache的交互次数，一次取多个该大小，
+		//个数由根据申请的空间大小确认
+		//将从central获取的的空间进行切块放入当前freelist中，并返回一个给用户
+		//RoundUp负责将元素大小对齐
 		return FechFromCentralCache(SizeClass::RoundUp(size));
 	}
 }
@@ -68,6 +70,7 @@ void ThreadCache::ListTooLong(FreeList& freeList, size_t num,size_t size)
 //	return start;
 //}
 
+//向centralcache获取空间
 void* ThreadCache::FechFromCentralCache(size_t size)
 {
 	size_t num = SizeClass::NumMoveSize(size);
@@ -75,6 +78,7 @@ void* ThreadCache::FechFromCentralCache(size_t size)
 	void* end = nullptr;
 	//actual 实际获取到的对象
 	//start 和end都是输出型参数 从中心缓存获取一个链表
+	//ThreadCache访问CentralCache的接口处
 	int actualNum = CentralCache::GetInstance().FetchRangeObj(start, end, num, size);
 	if (actualNum == 1)
 	{

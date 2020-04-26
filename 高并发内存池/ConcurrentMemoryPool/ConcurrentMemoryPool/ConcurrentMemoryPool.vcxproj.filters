@@ -24,10 +24,10 @@
     <ClCompile Include="PageCache.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="unitill.cpp">
+    <ClCompile Include="BeachMark.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="BeachMark.cpp">
+    <ClCompile Include="unitill_test.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

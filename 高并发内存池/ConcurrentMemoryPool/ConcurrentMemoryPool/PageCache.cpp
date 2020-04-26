@@ -2,7 +2,7 @@
 
 Span* PageCache::_NewSpan(size_t numpage)
 {
-	//_spanLists[numpage].Lock();
+	//获取numpage页的span
 	if (!_spanLists[numpage].Empty())
 	{
 		Span* span = _spanLists[numpage].Begin();
@@ -24,10 +24,9 @@ Span* PageCache::_NewSpan(size_t numpage)
 			splitspan->_pagesize = numpage;
 			for (PAGE_ID i = 0; i < numpage; ++i)
 			{
+				//_idRadix存的是spanid和span的映射关系，目的是申请的到大span需要分割和合并。
 				//切页后更改映射关系
-				//printf("删除pageid:%d\n", splitspan->_pageid + i);
 				_idRadix.Delete(splitspan->_pageid + i);
-				//printf("插入pageid:%d\n", splitspan->_pageid + i);
 				_idRadix.insert(splitspan->_pageid + i, splitspan);
 			}
 
@@ -49,8 +48,7 @@ Span* PageCache::_NewSpan(size_t numpage)
 
 	for (PAGE_ID i = 0; i < bigspan->_pagesize; ++i)
 	{
-		//_idRadix.insert(std::make_pair(bigspan->_pageid + i, bigspan));
-		//printf("插入pageid:%d\n", bigspan->_pageid + i);
+		//设置映射关系
 		_idRadix.insert(bigspan->_pageid + i,bigspan);
 	}
 	//向PageCache插入一个大小为pagesize的span
@@ -60,6 +58,7 @@ Span* PageCache::_NewSpan(size_t numpage)
 }
 Span* PageCache::NewSpan(size_t numpage)
 {
+	//访问PageCache也需要加锁
 	_mutex.lock();
 	Span* span = _NewSpan(numpage);
 	_mutex.unlock();

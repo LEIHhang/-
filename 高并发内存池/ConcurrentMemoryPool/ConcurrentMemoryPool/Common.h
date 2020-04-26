@@ -104,24 +104,24 @@ public:
 	//根据对象大小计算指针数组下标
 	static size_t _ListIndex(size_t size, int alig_shift)
 	{
-		//2的align_shift次幂是alignment
 		return ((size + ((1 << alig_shift) - 1)) >> alig_shift) -1;
 	}
-
+	//根据申请的大小，计算应该在thread_cache freelist[]的位置
 	static inline size_t ListIndex(size_t size)
 	{
 		assert(size <= MAX_SIZE);
-		static int group_array[3] = { 16, 72, 128 };//下标值
+		//需要大空间前下标大小的累加值
+		static int group_array[3] = { 16, 72, 128 };
 		if (size <= 128)
-			return _ListIndex(size, 3);
+			return _ListIndex(size, 3);//按2的3次幂对其
 		else if (size <= 1024)
 		{
-			return _ListIndex(size - 128, 4) + group_array[0];
+			return _ListIndex(size - 128, 4) + group_array[0];//按2的4次幂对其
 		}
 		else if (size <= 8192)
-			return _ListIndex(size - 1024, 7) + group_array[1];
+			return _ListIndex(size - 1024, 7) + group_array[1];//按2的7次幂对其
 		else if (size <= 65536)
-		return _ListIndex(size - 8192, 10) + group_array[2];
+		return _ListIndex(size - 8192, 10) + group_array[2];//按2的10次幂对其
 
 		return -1;
 	}
