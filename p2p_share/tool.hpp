@@ -35,7 +35,7 @@ public:
 	{
 		//IP_ADAPTER_INFO是一个保存网卡信息的结构体
 		//PIP_ADAPTER_INFO是指向这个结构体的指针
-		PIP_ADAPTER_INFO p_adapters = new IP_ADAPTER_INFO();
+		PIP_ADAPTER_INFO p_adapters = new IP_ADAPTER_INFO[];
 		uint64_t all_adapters_size = sizeof(IP_ADAPTER_INFO);
 		//GetAdaptersInfo是获取当前计算机所有主机网卡信息的接口，第二个参数返回所有网卡信息大小之和。
 		int ret = GetAdaptersInfo(p_adapters, (PULONG)&all_adapters_size);
@@ -63,13 +63,14 @@ public:
 				//std::cout << adapter._ip_addr << std::endl;
 				/*char s[40];
 				_itoa_s(adapter._ip_addr, s, 2);*/
-				/*printf("变量i的二进制数为：%s\n", s);
+				/*printf("变量i的二进制数为：%s\n", s);*/
 				std::cout << "网卡名称：" << p_adapters->AdapterName << std::endl;
 				std::cout << "描述信息：" << p_adapters->Description << std::endl;
 				std::cout << "IP地址：" << p_adapters->IpAddressList.IpAddress.String << std::endl;
 				std::cout << "子网掩码：" << p_adapters->IpAddressList.IpMask.String << std::endl;
-				std::cout << std::endl;*/
+				std::cout << std::endl;
 			}
+			//list->resize(1);
 			//PIP_ADAPTER_INFO tmp = p_adapters;
 			p_adapters = p_adapters->Next;
 		}
